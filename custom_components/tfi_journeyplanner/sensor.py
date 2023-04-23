@@ -7,7 +7,7 @@ from typing import Any
 # import asyncio
 import logging
 
-from datetime import datetime  # , timedelta
+from datetime import datetime, timedelta
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -21,16 +21,20 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DOMAIN,
+    CONF_STOPS,
     CONF_STOP_IDS,
-    # CONF_SERVICE_IDS,
-    # CONF_LIMIT_DEPARTURES,
-    # CONF_DEPARTURE_HORIZON,
+    CONF_SERVICE_IDS,
+    CONF_DIRECTION,
+    CONF_LIMIT_DEPARTURES,
+    CONF_DEPARTURE_HORIZON,
     CONF_REALTIME_ONLY,
     CONF_INCLUDE_CANCELLED,
-    # DEFAULT_DEPARTURE_HORIZON,
+    DEFAULTS,
+    DEFAULT_DEPARTURE_HORIZON,
 )
 from .tfi_journeyplanner_api import TFIData
 from .coordinator import TFIJourneyPlannerCoordinator
+from .util import get_duration_option
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,13 +49,53 @@ async def async_setup_entry(
     coordinator: TFIJourneyPlannerCoordinator = entry_data["coordinator"]
     tfi_data: TFIData = entry_data["tfi_data"]
     data = entry.data
+    options = entry.options
 
-    async_add_entities(
-        [
-            TfiJourneyPlannerSensor(coordinator, tfi_data, stop_id, entry)
-            for stop_id in data[CONF_STOP_IDS]
-        ]
-    )
+    entities = []
+    entity_unique_ids = {}
+    for stop in data[CONF_STOPS]:
+        stop_ids = stop[CONF_STOP_IDS]
+        service_ids = stop.get(CONF_SERVICE_IDS, options.get(CONF_SERVICE_IDS, []))
+        direction = stop.get(CONF_DIRECTION, options.get(CONF_DIRECTION, []))
+        limit_departures = stop.get(
+            CONF_LIMIT_DEPARTURES, options.get(CONF_LIMIT_DEPARTURES)
+        )
+        departure_horizon = get_duration_option(
+            stop,
+            CONF_DEPARTURE_HORIZON,
+            default=get_duration_option(
+                options, CONF_DEPARTURE_HORIZON, default=DEFAULT_DEPARTURE_HORIZON
+            ),
+        )
+
+        name = (
+            "Stop "
+            + ", ".join(stop_ids)
+            + (" Service " + ", ".join(service_ids) if service_ids else "")
+            + (" Direction " + ", ".join(direction) if direction else "")
+        )
+        unique_id = DOMAIN + "_" + "+".join(stop_ids)
+        if unique_id not in entity_unique_ids:
+            entity_unique_ids[unique_id] = 1
+        else:
+            entity_unique_ids[unique_id] += 1
+            unique_id += f"_{entity_unique_ids[unique_id]}"
+
+        entities.append(
+            TfiJourneyPlannerSensor(
+                name,
+                unique_id=unique_id,
+                entry=entry,
+                coordinator=coordinator,
+                tfi_data=tfi_data,
+                stop=stop,
+                service_ids=service_ids,
+                direction=direction,
+                limit_departures=limit_departures,
+                departure_horizon=departure_horizon,
+            )
+        )
+    async_add_entities(entities)
 
 
 class TfiJourneyPlannerSensor(CoordinatorEntity, SensorEntity):
@@ -62,33 +106,45 @@ class TfiJourneyPlannerSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
+        name: str,
+        unique_id: str,
+        entry: ConfigEntry,
         coordinator: TFIJourneyPlannerCoordinator,
         tfi_data: TFIData,
-        stop_id: str,
-        entry: ConfigEntry,
+        stop: dict[str, Any],
+        service_ids: list[str] | None,
+        direction: list[str] | None,
+        limit_departures: int | None,
+        departure_horizon: timedelta,
     ):
+        self._attr_name = name
+        self._attr_unique_id = unique_id
         self._coordinator = coordinator
         self._tfi_data = tfi_data
         self._config_entry = entry
-        # data: dict[str, Any] = entry.data
-        options: dict[str, Any] = entry.options
-
-        self._stop_ids = (stop_ids := [stop_id])
-        super().__init__(coordinator, context=self._stop_ids)
-        _LOGGER.debug("adding stops %s to coordinator", self._stop_ids)
-
-        # self._limit_departures = config.get(CONF_LIMIT_DEPARTURES)
-        # self._service_ids = config.get(CONF_SERVICE_IDS)
-        # self._departure_horizon = config.get(CONF_DEPARTURE_HORIZON)
-
-        self._attr_name = ("Stop " if len(stop_ids) == 1 else "Stops ") + ", ".join(
-            stop_ids
+        self._stop = stop
+        self._service_ids = service_ids
+        self._direction = direction
+        self._limit_departures = limit_departures
+        self._departure_horizon = departure_horizon
+        self._realtime_only = entry.options.get(
+            CONF_INCLUDE_CANCELLED, DEFAULTS[CONF_INCLUDE_CANCELLED]
+        )
+        self._include_cancelled = entry.options.get(
+            CONF_REALTIME_ONLY, DEFAULTS[CONF_REALTIME_ONLY]
         )
 
-        self._realtime_only = options.get(CONF_REALTIME_ONLY, False)
-        self._include_cancelled = options.get(CONF_INCLUDE_CANCELLED, False)
+        super().__init__(coordinator, context=stop[CONF_STOP_IDS])
+        _LOGGER.debug(
+            "adding stop %s (unique_id=%s) to coordinator", self._stop, unique_id
+        )
 
-        self._attr_unique_id = DOMAIN + "_" + "+".join([str(stop) for stop in stop_ids])
+        # stop_ids = stop[CONF_STOP_IDS]
+        # self._attr_name = "Stop " + ", ".join(stop_ids)
+        # if stop.get(CONF_SERVICE_IDS):
+        #     self._attr_name += "Service " + ", ".join(self._service_ids)
+        # if stop.get(CONF_DIRECTION):
+        #     self._attr_name += "Direction " + ", ".join(self._direction)
         self._departures = None
 
     # async def async_added_to_hass(self) -> None:
@@ -102,7 +158,14 @@ class TfiJourneyPlannerSensor(CoordinatorEntity, SensorEntity):
         return DeviceInfo(
             identifiers={
                 # Serial numbers are unique identifiers within a specific domain
-                (DOMAIN, *self._config_entry.data[CONF_STOP_IDS])
+                (
+                    DOMAIN,
+                    *[
+                        stop_id
+                        for stop in self._config_entry.data[CONF_STOPS]
+                        for stop_id in stop[CONF_STOP_IDS]
+                    ],
+                )
             },
             name=self._config_entry.title,
             # manufacturer=self.light.manufacturername,
@@ -113,14 +176,16 @@ class TfiJourneyPlannerSensor(CoordinatorEntity, SensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        stop = self._stop
 
         departures = self._tfi_data.get_filtered_departures(
-            self._stop_ids,
-            # service_ids=self._service_ids,
-            # limit_departures=self._limit_departures,
-            # departure_horizon=self._departure_horizon,
-            include_cancelled=self._include_cancelled,
+            stop[CONF_STOP_IDS],
+            service_ids=self._service_ids,
+            direction=self._direction,
+            limit_departures=self._limit_departures,
+            departure_horizon=self._departure_horizon,
             realtime_only=self._realtime_only,
+            include_cancelled=self._include_cancelled,
         )
         self._departures = departures
         first_departure = None

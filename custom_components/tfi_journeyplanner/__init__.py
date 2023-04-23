@@ -1,4 +1,4 @@
-"""The tfi_journeyplanner integration."""
+"""The TFI Journey Planner integration."""
 from __future__ import annotations
 
 import asyncio
@@ -12,19 +12,15 @@ from homeassistant.exceptions import PlatformNotReady
 
 from .const import (
     DOMAIN,
-    # CONF_DEPARTURE_HORIZON,
     CONF_UPDATE_INTERVAL,
     CONF_UPDATE_INTERVAL_FAST,
     CONF_UPDATE_INTERVAL_NO_DATA,
     CONF_UPDATE_HORIZON_FAST,
-    # DEFAULT_DEPARTURE_HORIZON,
-    DEFAULT_UPDATE_INTERVAL,
-    DEFAULT_UPDATE_INTERVAL_FAST,
-    DEFAULT_UPDATE_INTERVAL_NO_DATA,
-    DEFAULT_UPDATE_HORIZON_FAST,
+    DEFAULTS,
 )
 from .tfi_journeyplanner_api import TFIData
 from .coordinator import TFIJourneyPlannerCoordinator
+from .util import get_duration_option
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 
@@ -47,29 +43,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise PlatformNotReady  # pylint: disable=raise-missing-from
 
     options = entry.options
-    # departure_horizon = timedelta(
-    #     **options.get(CONF_DEPARTURE_HORIZON, DEFAULT_DEPARTURE_HORIZON)
-    # )
-    update_interval = timedelta(
-        **options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
-    )
-    update_interval_fast = timedelta(
-        **options.get(CONF_UPDATE_INTERVAL_FAST, DEFAULT_UPDATE_INTERVAL_FAST)
-    )
-    update_interval_no_data = timedelta(
-        **options.get(CONF_UPDATE_INTERVAL_NO_DATA, DEFAULT_UPDATE_INTERVAL_NO_DATA)
-    )
-    update_horizon_fast = timedelta(
-        **options.get(CONF_UPDATE_HORIZON_FAST, DEFAULT_UPDATE_HORIZON_FAST)
-    )
     coordinator = TFIJourneyPlannerCoordinator(
         hass,
         tfi_data,
         # departure_horizon,
-        update_interval,
-        update_interval_fast,
-        update_interval_no_data,
-        update_horizon_fast,
+        get_duration_option(options, CONF_UPDATE_INTERVAL),
+        get_duration_option(options, CONF_UPDATE_INTERVAL_FAST),
+        get_duration_option(options, CONF_UPDATE_INTERVAL_NO_DATA),
+        get_duration_option(options, CONF_UPDATE_HORIZON_FAST),
     )
 
     hass.data[DOMAIN].setdefault(entry.entry_id, {})

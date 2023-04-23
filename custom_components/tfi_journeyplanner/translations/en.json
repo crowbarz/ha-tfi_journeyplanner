@@ -4,15 +4,17 @@
             "already_configured": "Device is already configured"
         },
         "error": {
-            "missing_stop_ids": "No stop IDs specified",
+            "missing_stops": "No stops specified",
+            "invalid_stops": "Invalid stop specifications: {stop}",
             "unknown": "Unexpected exception: {exception}"
         },
         "step": {
             "user": {
                 "data": {
                     "title": "Integration Title",
-                    "stop_ids": "Stop IDs",
-                    "service_ids": "Service IDs",
+                    "stops": "Stops",
+                    "service_ids": "Show service ID",
+                    "direction": "Show direction",
                     "limit_departures": "Maximum number of departures to show",
                     "departure_horizon": "Departure horizon",
                     "update_horizon_fast": "Fast update horizon",
@@ -23,6 +25,9 @@
                     "include_cancelled": "Include cancelled services"
                 },
                 "data_description": {
+                    "stops": "Stop format: [stop_id][=service_id][/direction][@departure_horizon(HH:MM:SS)][#limit_departures]\nMultiple stop_id, service_id, direction can be specified, separate with \",\",",
+                    "service_ids": "Only departures with listed service IDs will be shown",
+                    "direction": "Only departures with listed directions will be shown",
                     "limit_departures": "0 for unlimited departures",
                     "update_horizon_fast": "Update at fast interval when first departure is within this time period",
                     "update_interval_fast": "Update interval when first departure is within fast update horizon",
@@ -37,12 +42,12 @@
         },
         "error": {
             "missing_stop_ids": "No stop IDs specified",
+            "invalid_stop_ids": "Invalid stop IDs: {stop_ids}",
             "unknown": "Unexpected exception: {exception}"
         },
         "step": {
             "init": {
                 "data": {
-                    "stop_ids": "Stop IDs",
                     "service_ids": "Service IDs",
                     "limit_departures": "Maximum number of departures to show",
                     "departure_horizon": "Departure horizon",
@@ -54,6 +59,8 @@
                     "include_cancelled": "Include cancelled services"
                 },
                 "data_description": {
+                    "service_ids": "Only departures with listed service IDs will be shown",
+                    "direction": "Only departures with listed directions will be shown",
                     "limit_departures": "0 for unlimited departures",
                     "update_horizon_fast": "Update at fast interval when first departure is within this time period",
                     "update_interval_fast": "Update interval when first departure is within fast update horizon",

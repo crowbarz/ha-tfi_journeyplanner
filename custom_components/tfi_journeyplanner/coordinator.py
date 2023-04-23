@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DEFAULT_UPDATE_NO_DATA_THRESHOLD
+from .util import timedelta_str
 from .tfi_journeyplanner_api import TFIData
 
 _LOGGER = logging.getLogger(__name__)
@@ -36,26 +37,12 @@ class TFIJourneyPlannerCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=3),
         )
         self._tfi_data = tfi_data
-        self._update_interval_default = update_interval
-        self._update_interval_fast = update_interval_fast
-        self._update_interval_no_data = update_interval_no_data
-        self._update_horizon_fast = update_horizon_fast
+        self.update_interval_default = update_interval
+        self.update_interval_fast = update_interval_fast
+        self.update_interval_no_data = update_interval_no_data
+        self.update_horizon_fast = update_horizon_fast
         self._next_update: datetime = None
         self._update_no_data = 0
-
-    def update_configuration(
-        self,
-        update_interval: timedelta,
-        update_interval_fast: timedelta,
-        update_interval_no_data: timedelta,
-        update_horizon_fast: timedelta,
-    ) -> None:
-        """Update TFI Journey Planner coordinator configuration."""
-        self._update_interval_default = update_interval
-        self._update_interval_fast = update_interval_fast
-        self._update_interval_no_data = update_interval_no_data
-        self._update_horizon_fast = update_horizon_fast
-        self._next_update: datetime = None
 
     async def _async_update_data(self) -> None:
         """Fetch data from TFI Journey Planner API."""
@@ -64,14 +51,6 @@ class TFIJourneyPlannerCoordinator(DataUpdateCoordinator):
         if not stop_ids:
             _LOGGER.debug("no stops registered, skipping update")
             return
-
-        def timedelta_str(tdelta: timedelta) -> str:
-            """Convert timedelta to str, handling negative values."""
-            return (
-                "-" + str(abs(tdelta)).partition(".")[0]
-                if tdelta.total_seconds() < 0
-                else str(tdelta).partition(".")[0]
-            )
 
         now = datetime.now().astimezone()
         next_update = self._next_update
@@ -88,18 +67,18 @@ class TFIJourneyPlannerCoordinator(DataUpdateCoordinator):
             departures = await tfi_data.update_departures(stop_ids)
             first_departure = None
             departure_horizon = None
-            update_interval = self._update_interval_default
+            update_interval = self.update_interval_default
             if len(departures) == 0:
                 self._update_no_data += 1
                 if self._update_no_data > DEFAULT_UPDATE_NO_DATA_THRESHOLD:
-                    update_interval = self._update_interval_no_data
+                    update_interval = self.update_interval_no_data
             else:
                 self._update_no_data = 0
                 first_departure: datetime = departures[0].get("departure", now)
                 departure_horizon = first_departure - now
-                update_horizon_fast = self._update_horizon_fast
-                update_interval_default = self._update_interval_default
-                update_interval_fast = self._update_interval_fast
+                update_horizon_fast = self.update_horizon_fast
+                update_interval_default = self.update_interval_default
+                update_interval_fast = self.update_interval_fast
                 if departure_horizon < update_horizon_fast:
                     ## Next departure due within fast update horizon
                     update_interval = update_interval_fast

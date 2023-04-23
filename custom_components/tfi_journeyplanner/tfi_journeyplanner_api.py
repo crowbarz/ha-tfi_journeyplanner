@@ -7,6 +7,8 @@ from typing import Any
 import logging
 import aiohttp
 
+from .const import DEFAULT_DEPARTURE_HORIZON
+
 _LOGGER = logging.getLogger(__name__)
 
 TFI_DEPARTURES_API = (
@@ -59,30 +61,33 @@ class TFIData:
     async def get_departures(
         self,
         stop_ids: list[str],
-        service_ids: list[str] | None = None,
         departure_time: datetime | None = None,
-        departure_horizon: timedelta = timedelta(hours=1),
+        service_ids: list[str] | None = None,
+        direction: list[str] | None = None,
         limit_departures: int | None = None,
+        departure_horizon: timedelta | None = None,
         realtime_only: bool = False,
         include_cancelled: bool = False,
     ) -> list[dict[str, Any]]:
         """Update cache and return filtered departures."""
         await self.update_departures(stop_ids, departure_time)
         return self.get_filtered_departures(
-            stop_ids,
-            service_ids,
-            departure_horizon,
-            limit_departures,
-            realtime_only,
-            include_cancelled,
+            stop_ids=stop_ids,
+            service_ids=service_ids,
+            direction=direction,
+            limit_departures=limit_departures,
+            departure_horizon=departure_horizon,
+            realtime_only=realtime_only,
+            include_cancelled=include_cancelled,
         )
 
     def get_filtered_departures(
         self,
         stop_ids: list[str],
         service_ids: list[str] | None = None,
-        departure_horizon: timedelta = timedelta(hours=1),
+        direction: list[str] | None = None,
         limit_departures: int | None = None,
+        departure_horizon: timedelta | None = None,
         realtime_only: bool = False,
         include_cancelled: bool = False,
     ) -> list[dict[str, Any]]:
@@ -93,12 +98,15 @@ class TFIData:
         now = datetime.now().astimezone()
         if service_ids is None:
             service_ids = []
+        if departure_horizon is None:
+            departure_horizon = timedelta(**DEFAULT_DEPARTURE_HORIZON)
 
         def filter_departure(dep: dict[str, Any]) -> bool:
             """Filter departure based on options."""
             dep_stop_id = dep["stopRef"]
             dep_rt = dep["realTimeDeparture"]
             dep_sch = dep["scheduledDeparture"]
+            dep_dir = dep["serviceDirection"]
             dep_time = dep_rt if dep_rt else dep_sch
             dep_cancelled = dep.get("cancelled", False)
             dep_service = dep.get("serviceNumber", "unknown")
@@ -107,6 +115,7 @@ class TFIData:
                 dep_stop_id in stop_ids
                 and now <= dep_time <= now + departure_horizon
                 and (not service_ids or dep_service in service_ids)
+                and (not direction or dep_dir in direction)
                 and (not realtime_only or dep_rt is not None)
                 and (include_cancelled or not dep_cancelled)
             )
