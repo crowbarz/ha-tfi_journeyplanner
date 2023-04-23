@@ -1,0 +1,39 @@
+"""Constants for the tfi_journeyplanner integration."""
+
+DOMAIN = "tfi_journeyplanner"
+
+CONF_TITLE = "title"
+CONF_STOP_IDS = "stop_ids"
+CONF_SERVICE_IDS = "service_ids"
+CONF_LIMIT_DEPARTURES = "limit_departures"
+CONF_DEPARTURE_HORIZON = "departure_horizon"
+CONF_UPDATE_HORIZON_FAST = "update_horizon_fast"
+CONF_UPDATE_INTERVAL = "update_interval"
+CONF_UPDATE_INTERVAL_FAST = "update_interval_fast"
+CONF_UPDATE_INTERVAL_NO_DATA = "update_interval_no_data"
+CONF_REALTIME_ONLY = "realtime_only"
+CONF_INCLUDE_CANCELLED = "include_cancelled"
+
+ENTRY_DATA = {
+    CONF_TITLE,
+    CONF_STOP_IDS,
+}
+ENTRY_OPTIONS = {
+    CONF_SERVICE_IDS,
+    CONF_LIMIT_DEPARTURES,
+    CONF_DEPARTURE_HORIZON,
+    CONF_UPDATE_HORIZON_FAST,
+    CONF_UPDATE_INTERVAL,
+    CONF_UPDATE_INTERVAL_FAST,
+    CONF_UPDATE_INTERVAL_NO_DATA,
+    CONF_REALTIME_ONLY,
+    CONF_INCLUDE_CANCELLED,
+}
+
+DEFAULT_TITLE = "TFI Journey Planner"
+DEFAULT_DEPARTURE_HORIZON = {"minutes": 60}
+DEFAULT_UPDATE_HORIZON_FAST = {"minutes": 10}
+DEFAULT_UPDATE_INTERVAL = {"minutes": 5}
+DEFAULT_UPDATE_INTERVAL_FAST = {"minutes": 1}
+DEFAULT_UPDATE_INTERVAL_NO_DATA = {"hours": 1}
+DEFAULT_UPDATE_NO_DATA_THRESHOLD = 3

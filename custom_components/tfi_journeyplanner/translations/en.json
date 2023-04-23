@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "missing_stop_ids": "No stop IDs specified",
+            "unknown": "Unexpected exception: {exception}"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "title": "Integration Title",
+                    "stop_ids": "Stop IDs",
+                    "service_ids": "Service IDs",
+                    "limit_departures": "Maximum number of departures to show",
+                    "departure_horizon": "Departure horizon",
+                    "update_horizon_fast": "Fast update horizon",
+                    "update_interval": "Normal update interval",
+                    "update_interval_fast": "Fast update interval",
+                    "update_interval_no_data": "No data update interval",
+                    "realtime_only": "Show real-time departures only",
+                    "include_cancelled": "Include cancelled services"
+                },
+                "data_description": {
+                    "limit_departures": "0 for unlimited departures",
+                    "update_horizon_fast": "Update at fast interval when first departure is within this time period",
+                    "update_interval_fast": "Update interval when first departure is within fast update horizon",
+                    "update_interval_no_data": "Update interval when no data has been retrieved"
+                }
+            }
+        }
+    },
+    "options": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "missing_stop_ids": "No stop IDs specified",
+            "unknown": "Unexpected exception: {exception}"
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "stop_ids": "Stop IDs",
+                    "service_ids": "Service IDs",
+                    "limit_departures": "Maximum number of departures to show",
+                    "departure_horizon": "Departure horizon",
+                    "update_horizon_fast": "Fast update horizon",
+                    "update_interval": "Normal update interval",
+                    "update_interval_fast": "Fast update interval",
+                    "update_interval_no_data": "No data update interval",
+                    "realtime_only": "Show real-time departures only",
+                    "include_cancelled": "Include cancelled services"
+                },
+                "data_description": {
+                    "limit_departures": "0 for unlimited departures",
+                    "update_horizon_fast": "Update at fast interval when first departure is within this time period",
+                    "update_interval_fast": "Update interval when first departure is within fast update horizon",
+                    "update_interval_no_data": "Update interval when no data has been retrieved"
+                }
+            }
+        }
+    }
+}

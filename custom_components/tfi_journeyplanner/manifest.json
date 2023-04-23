@@ -1,0 +1,14 @@
+{
+  "domain": "tfi_journeyplanner",
+  "name": "TFI Journey Planner",
+  "codeowners": [ "@crowbarz" ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/tfi_journeyplanner",
+  "homekit": {},
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "ssdp": [],
+  "version": "0.1.0",
+  "zeroconf": []
+}
