@@ -84,7 +84,7 @@ class TFIJourneyPlannerCoordinator(DataUpdateCoordinator):
                     update_interval = update_interval_fast
                 elif departure_horizon < update_horizon_fast + update_interval_default:
                     ## Next departure will fall within fast update horizon before next update
-                    update_interval = min(
+                    update_interval = max(
                         departure_horizon - update_horizon_fast, update_interval_fast
                     )
 
