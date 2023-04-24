@@ -173,8 +173,9 @@ class TFIData:
         def filter_departure(dep: dict[str, Any]) -> bool:
             return dep["departure"] >= now - timedelta(minutes=1)
 
+        tzoffset = -int(datetime.now().astimezone().utcoffset().total_seconds()) * 1000
         post_data = {
-            "clientTimeZoneOffsetInMS": -360000,
+            "clientTimeZoneOffsetInMS": tzoffset,
             "departureDate": departure_str,
             "departureTime": departure_str,
             "stopIds": stop_ids,  ## ["8220DB000393"],
