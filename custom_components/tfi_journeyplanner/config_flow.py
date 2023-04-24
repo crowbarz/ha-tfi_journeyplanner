@@ -38,7 +38,7 @@ from .util import duration_to_seconds, seconds_to_duration, timedelta_str
 
 _LOGGER = logging.getLogger(__name__)
 
-OPTIONS_SCHEMA_ENTRIES = {
+OPTIONS_FILTERS_SCHEMA_ITEMS = {
     vol.Optional(CONF_SERVICE_IDS): selector.SelectSelector(
         selector.SelectSelectorConfig(options=[], custom_value=True, multiple=True),
     ),
@@ -59,12 +59,21 @@ OPTIONS_SCHEMA_ENTRIES = {
         CONF_DEPARTURE_HORIZON, default=seconds_to_duration(DEFAULT_DEPARTURE_HORIZON)
     ): selector.DurationSelector(selector.DurationSelectorConfig(enable_day=False)),
     vol.Required(
-        CONF_UPDATE_HORIZON_FAST,
-        default=seconds_to_duration(DEFAULTS[CONF_UPDATE_HORIZON_FAST]),
-    ): selector.DurationSelector(selector.DurationSelectorConfig(enable_day=False)),
+        CONF_REALTIME_ONLY, default=DEFAULTS[CONF_REALTIME_ONLY]
+    ): selector.BooleanSelector(),
+    vol.Required(
+        CONF_INCLUDE_CANCELLED, default=DEFAULTS[CONF_INCLUDE_CANCELLED]
+    ): selector.BooleanSelector(),
+}
+
+OPTIONS_TIMERS_SCHEMA_ITEMS = {
     vol.Required(
         CONF_UPDATE_INTERVAL,
         default=seconds_to_duration(DEFAULTS[CONF_UPDATE_INTERVAL]),
+    ): selector.DurationSelector(selector.DurationSelectorConfig(enable_day=False)),
+    vol.Required(
+        CONF_UPDATE_HORIZON_FAST,
+        default=seconds_to_duration(DEFAULTS[CONF_UPDATE_HORIZON_FAST]),
     ): selector.DurationSelector(selector.DurationSelectorConfig(enable_day=False)),
     vol.Required(
         CONF_UPDATE_INTERVAL_FAST,
@@ -74,12 +83,6 @@ OPTIONS_SCHEMA_ENTRIES = {
         CONF_UPDATE_INTERVAL_NO_DATA,
         default=seconds_to_duration(DEFAULTS[CONF_UPDATE_INTERVAL_NO_DATA]),
     ): selector.DurationSelector(selector.DurationSelectorConfig(enable_day=False)),
-    vol.Required(
-        CONF_REALTIME_ONLY, default=DEFAULTS[CONF_REALTIME_ONLY]
-    ): selector.BooleanSelector(),
-    vol.Required(
-        CONF_INCLUDE_CANCELLED, default=DEFAULTS[CONF_INCLUDE_CANCELLED]
-    ): selector.BooleanSelector(),
 }
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
@@ -88,11 +91,12 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_STOPS): selector.SelectSelector(
             selector.SelectSelectorConfig(options=[], custom_value=True, multiple=True),
         ),
-        **OPTIONS_SCHEMA_ENTRIES,
+        **OPTIONS_FILTERS_SCHEMA_ITEMS,
     }
 )
 
-STEP_OPTIONS_SCHEMA = vol.Schema({**OPTIONS_SCHEMA_ENTRIES})
+STEP_OPTIONS_FILTERS_SCHEMA = vol.Schema({**OPTIONS_FILTERS_SCHEMA_ITEMS})
+STEP_OPTIONS_TIMERS_SCHEMA = vol.Schema({**OPTIONS_TIMERS_SCHEMA_ITEMS})
 
 
 def convert_options(options: dict[str, Any]) -> dict[str, Any]:
@@ -269,26 +273,56 @@ class TFIJourneyPlannerOptionsFlow(config_entries.OptionsFlow):
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialise TFI Journey Planner options flow."""
         self.config_entry = config_entry
+        self._options: dict[str, Any] = dict(self.config_entry.options)
+        self._flow_options = convert_options(self._options)
 
     async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
+        self, _user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle options flow for TFI Journey Planner."""
+        return await self.async_step_filter_options()
+
+    async def async_step_filter_options(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle filters page."""
         errors: dict[str, str] = {}
         description_placeholders: dict[str, str] = {}
 
         if user_input is not None:
             (_, options, errors, description_placeholders) = validate_input(user_input)
             if not errors:
-                return self.async_create_entry(title="", data=options)
-            options = user_input
-        else:
-            options = convert_options(self.config_entry.options)
+                self._options.update(options)
+                return await self.async_step_timer_options()
 
         return self.async_show_form(
-            step_id="init",
+            step_id="filter_options",
             data_schema=self.add_suggested_values_to_schema(
-                STEP_OPTIONS_SCHEMA, options
+                STEP_OPTIONS_FILTERS_SCHEMA,
+                user_input if user_input else self._flow_options,
+            ),
+            errors=errors,
+            description_placeholders=description_placeholders,
+        )
+
+    async def async_step_timer_options(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle timers page."""
+        errors: dict[str, str] = {}
+        description_placeholders: dict[str, str] = {}
+
+        if user_input is not None:
+            (_, options, errors, description_placeholders) = validate_input(user_input)
+            if not errors:
+                self._options.update(options)
+                return self.async_create_entry(title="", data=self._options)
+
+        return self.async_show_form(
+            step_id="timer_options",
+            data_schema=self.add_suggested_values_to_schema(
+                STEP_OPTIONS_TIMERS_SCHEMA,
+                user_input if user_input else self._flow_options,
             ),
             errors=errors,
             description_placeholders=description_placeholders,
