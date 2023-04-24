@@ -40,6 +40,7 @@ DEFAULTS = {
     CONF_UPDATE_INTERVAL: timedelta(minutes=5),
     CONF_UPDATE_INTERVAL_FAST: timedelta(minutes=1),
     CONF_UPDATE_INTERVAL_NO_DATA: timedelta(hours=1),
+    CONF_LIMIT_DEPARTURES: 10,
     CONF_REALTIME_ONLY: False,
     CONF_INCLUDE_CANCELLED: False,
 }

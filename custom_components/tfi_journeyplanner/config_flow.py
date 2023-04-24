@@ -45,7 +45,9 @@ OPTIONS_SCHEMA_ENTRIES = {
     vol.Optional(CONF_DIRECTION): selector.SelectSelector(
         selector.SelectSelectorConfig(options=[], custom_value=True, multiple=True),
     ),
-    vol.Required(CONF_LIMIT_DEPARTURES, default=0): vol.Coerce(
+    vol.Required(
+        CONF_LIMIT_DEPARTURES, default=DEFAULTS[CONF_LIMIT_DEPARTURES]
+    ): vol.Coerce(
         int,
         selector.NumberSelector(
             selector.NumberSelectorConfig(
