@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Tuple
 import re
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import voluptuous as vol
 
@@ -34,7 +34,12 @@ from .const import (
     DEFAULT_TITLE,
     DEFAULT_DEPARTURE_HORIZON,
 )
-from .util import duration_to_seconds, seconds_to_duration, timedelta_str
+from .util import (
+    duration_to_seconds,
+    duration_str_to_seconds,
+    seconds_to_duration,
+    timedelta_to_str,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -121,7 +126,9 @@ def convert_options(options: dict[str, Any]) -> dict[str, Any]:
                     )
                     + (
                         "@"
-                        + timedelta_str(timedelta(seconds=stop[CONF_DEPARTURE_HORIZON]))
+                        + timedelta_to_str(
+                            timedelta(seconds=stop[CONF_DEPARTURE_HORIZON])
+                        )
                         if CONF_DEPARTURE_HORIZON in stop
                         else ""
                     )
@@ -179,9 +186,9 @@ def validate_input(
                 case "@":  ## departure_horizon override
                     stop.update(
                         {
-                            CONF_DEPARTURE_HORIZON: timedelta(
-                                datetime.strptime(stop_split.pop(0), "%H:%M:%S")
-                            ).total_seconds()
+                            CONF_DEPARTURE_HORIZON: duration_str_to_seconds(
+                                stop_split.pop(0)
+                            )
                         }
                     )
         return stop
@@ -196,12 +203,12 @@ def validate_input(
                 for stop_raw in stops_raw:
                     try:
                         stop = parse_stop_raw(stop_raw)
+                        stops.append(stop)
                     except Exception:  # pylint: disable=broad-except
-                        errors[CONF_STOPS] = "invalid_stop_ids"
+                        errors[CONF_STOPS] = "invalid_stop_id"
                         description_placeholders.setdefault("stops", [])
                         description_placeholders["stops"].append(stop_raw)
 
-                    stops.append(stop)
                 data[CONF_STOPS] = stops
 
         if CONF_DEPARTURE_HORIZON in user_input:

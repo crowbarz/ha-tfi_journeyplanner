@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DEFAULT_UPDATE_NO_DATA_THRESHOLD
-from .util import timedelta_str
+from .util import timedelta_to_str
 from .tfi_journeyplanner_api import TFIData
 
 _LOGGER = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ class TFIJourneyPlannerCoordinator(DataUpdateCoordinator):
         if next_update > now + timedelta(seconds=15):
             _LOGGER.debug(
                 "skipping update, next update in %s",
-                timedelta_str(next_update - now),
+                timedelta_to_str(next_update - now),
             )
             return
 
@@ -94,6 +94,6 @@ class TFIJourneyPlannerCoordinator(DataUpdateCoordinator):
             _LOGGER.debug(
                 "retrieved %d departures, first departure in %s, next update in %s",
                 len(departures),
-                timedelta_str(departure_horizon),
-                timedelta_str(update_interval),
+                timedelta_to_str(departure_horizon),
+                timedelta_to_str(update_interval),
             )
