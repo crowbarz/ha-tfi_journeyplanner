@@ -30,6 +30,7 @@ from .const import (
     CONF_REALTIME_ONLY,
     CONF_INCLUDE_CANCELLED,
     DEFAULTS,
+    DEFAULT_ICON,
     DEFAULT_DEPARTURE_HORIZON,
 )
 from .tfi_journeyplanner_api import TFIData
@@ -119,6 +120,7 @@ class TfiJourneyPlannerSensor(CoordinatorEntity, SensorEntity):
     ):
         self._attr_name = name
         self._attr_unique_id = unique_id
+        self._attr_icon = DEFAULT_ICON
         self._coordinator = coordinator
         self._tfi_data = tfi_data
         self._config_entry = entry
@@ -168,7 +170,8 @@ class TfiJourneyPlannerSensor(CoordinatorEntity, SensorEntity):
                 )
             },
             name=self._config_entry.title,
-            # manufacturer=self.light.manufacturername,
+            manufacturer="Transport for Ireland",
+            configuration_url="https://journeyplanner.transportforireland.ie/",
             # model=self.light.productname,
             # sw_version=self.light.swversion,
         )
