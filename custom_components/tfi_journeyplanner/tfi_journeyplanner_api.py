@@ -140,7 +140,7 @@ class TFIData:
         self,
         stop_ids: list[str],
         departure_time: datetime | None = None,
-    ) -> None:
+    ) -> list[dict[str, Any]] | bool:
         """Update cached departures."""
         session = self._session
         if not session:
@@ -187,10 +187,12 @@ class TFIData:
 
         # _LOGGER.debug("post_data=%s", json.dumps(post_data))
         async with session.post(TFI_DEPARTURES_API, json=post_data) as resp:
-            data: dict[str, Any] = await resp.json()
+            data: dict[str, Any] = {}
+            if resp.status == 200:
+                data = await resp.json()
             # _LOGGER.debug("data=%s", data)
             departures = []
-            if not (deps_raw := data["stopDepartures"]):
+            if not (deps_raw := data.get("stopDepartures", [])):
                 if not (deps_raw := self._departures):
                     if not self._no_data_log_msg:
                         _LOGGER.warning(
