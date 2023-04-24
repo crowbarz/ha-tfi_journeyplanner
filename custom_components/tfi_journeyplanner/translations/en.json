@@ -25,7 +25,7 @@
                     "include_cancelled": "Include cancelled services"
                 },
                 "data_description": {
-                    "stops": "Stop format: [stop_id][=service_id][/direction][@departure_horizon(HH:MM:SS)][#limit_departures]\nMultiple stop_id, service_id, direction can be specified, separate with \",\",",
+                    "stops": "Stop format: [stop_id][=service_id][/direction][@departure_horizon(HH:MM:SS)][#limit_departures]\nMultiple stop_id, service_id, direction can be specified, separate with \",\"",
                     "service_ids": "Only departures with listed service IDs will be shown",
                     "direction": "Only departures with listed directions will be shown",
                     "limit_departures": "0 for unlimited departures",
@@ -49,6 +49,7 @@
             "init": {
                 "data": {
                     "service_ids": "Service IDs",
+                    "direction": "Show direction",
                     "limit_departures": "Maximum number of departures to show",
                     "departure_horizon": "Departure horizon",
                     "update_horizon_fast": "Fast update horizon",
