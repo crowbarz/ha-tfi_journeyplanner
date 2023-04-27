@@ -10,11 +10,11 @@ This integration can be installed via HACS by adding this repository as a custom
 
 Once installed, add an instance of this integration via the UI (**Configuration > Integrations > +**), enter all of the stop IDs that you wish to poll data for in the **Stops** field. Click **Submit** to start the instance and generate entities for each stop entered.
 
-To identify the stop ID for a transit stop, go to https://journeyplanner.transportforireland.ie/, search for the stop and go to the live departures for that stop. The URL of the page shows the stop ID that you need to enter into the integration.
+To identify the stop ID for a transit stop, go to the [TFI Journey Planner](https://journeyplanner.transportforireland.ie/), search for the stop and go to the live departures for that stop. The URL of the page shows the stop ID that you need to enter into the integration.
 
 You can see the details of all departures in the attributes of the stop entities. This can also be used by front-end integrations such as [Flex Table Card](https://github.com/custom-cards/flex-table-card) to generate a departure board.
 
-**NOTE:** It is strongly recommended that all sensors created by this integration be excluded from your recorder database. See the[Recorder documentation](https://www.home-assistant.io/integrations/recorder/#configure-filter) for the process. Otherwise, every sensor update will be stored in the Home Assistant database and take up a lot of unnecessary disk space.
+**NOTE:** It is strongly recommended that all sensors created by this integration be excluded from your recorder database. See the [Recorder documentation](https://www.home-assistant.io/integrations/recorder/#configure-filter) for the process. Otherwise, every sensor update will be stored in the Home Assistant database and take up a lot of unnecessary disk space.
 
 ## Stop IDs
 
@@ -28,7 +28,7 @@ If configured globally, it is not currently possible to remove service ID and di
 
 | Parameter | Description
 | --------- | -----------
-| *stop_id* | The stop identifier used at https://journeyplanner.transportforireland.ie/. Multiple stop IDs can be specified for the same stop by separating them with a comma.
+| *stop_id* | The stop identifier from on the [TFI Journey Planner](https://journeyplanner.transportforireland.ie/). Multiple stop IDs can be specified for the same stop by separating them with a comma.
 | *service_id* | Filter departures by service IDs. This is useful if you are not interested in all services that stop at the transit stop. Multiple service IDs can be specified for the same stop by separating them with a comma.
 | *direction* | Filter departures by direction. This is usually `OUTBOUND` and `INBOUND` and can be found by reviewing the detailed departure information in the entity attributes. Multiple directions can be specified for the same stop by separating them with a comma.
 | *limit_departures* | Limit the number of departures returned by this integration.
