@@ -56,9 +56,7 @@ To reduce the number of poll requests, all transit stops added to the same insta
 
 ## Reconfiguring the integration
 
-Global departure filters and polling intervals can be modfied after the integration is added by clicking **Configure** on the integration card.
-
-To change the stop IDs that are polled, delete the integration and add it again.
+Stops, departure filters and polling intervals can be modified by clicking **Configure** on the integration card.
 
 ## Enabling debugging
 
