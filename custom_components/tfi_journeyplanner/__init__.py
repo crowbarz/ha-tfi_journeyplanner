@@ -16,13 +16,12 @@ from .const import (
     CONF_UPDATE_INTERVAL_FAST,
     CONF_UPDATE_INTERVAL_NO_DATA,
     CONF_UPDATE_HORIZON_FAST,
-    DEFAULTS,
 )
 from .tfi_journeyplanner_api import TFIData
 from .coordinator import TFIJourneyPlannerCoordinator
 from .util import get_duration_option
 
-PLATFORMS: list[Platform] = [Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.SWITCH]
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -30,11 +30,12 @@ from .const import (
     CONF_REALTIME_ONLY,
     CONF_INCLUDE_CANCELLED,
     DEFAULTS,
-    DEFAULT_ICON,
+    DEFAULT_SENSOR_ICON,
     DEFAULT_DEPARTURE_HORIZON,
 )
 from .tfi_journeyplanner_api import TFIData
 from .coordinator import TFIJourneyPlannerCoordinator
+from .device import get_device_info, get_device_unique_id
 from .util import get_duration_option
 
 _LOGGER = logging.getLogger(__name__)
@@ -75,7 +76,7 @@ async def async_setup_entry(
             + (" Service " + ", ".join(service_ids) if service_ids else "")
             + (" Direction " + ", ".join(direction) if direction else "")
         )
-        unique_id = DOMAIN + "_" + "+".join(stop_ids)
+        unique_id = get_device_unique_id(entry, "+".join(stop_ids))
         if unique_id not in entity_unique_ids:
             entity_unique_ids[unique_id] = 1
         else:
@@ -120,7 +121,7 @@ class TfiJourneyPlannerSensor(CoordinatorEntity, SensorEntity):
     ):
         self._attr_name = name
         self._attr_unique_id = unique_id
-        self._attr_icon = DEFAULT_ICON
+        self._attr_icon = DEFAULT_SENSOR_ICON
         self._coordinator = coordinator
         self._tfi_data = tfi_data
         self._config_entry = entry
@@ -138,7 +139,7 @@ class TfiJourneyPlannerSensor(CoordinatorEntity, SensorEntity):
 
         super().__init__(coordinator, context=stop[CONF_STOP_IDS])
         _LOGGER.debug(
-            "adding stop %s (unique_id=%s) to coordinator", self._stop, unique_id
+            "subscribing stop %s (unique_id=%s) to coordinator", self._stop, unique_id
         )
 
         # stop_ids = stop[CONF_STOP_IDS]
@@ -157,24 +158,7 @@ class TfiJourneyPlannerSensor(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
-        return DeviceInfo(
-            identifiers={
-                # Serial numbers are unique identifiers within a specific domain
-                (
-                    DOMAIN,
-                    *[
-                        stop_id
-                        for stop in self._config_entry.data[CONF_STOPS]
-                        for stop_id in stop[CONF_STOP_IDS]
-                    ],
-                )
-            },
-            name=self._config_entry.title,
-            manufacturer="Transport for Ireland",
-            configuration_url="https://journeyplanner.transportforireland.ie/",
-            # model=self.light.productname,
-            # sw_version=self.light.swversion,
-        )
+        return get_device_info(self._config_entry)
 
     @callback
     def _handle_coordinator_update(self) -> None:

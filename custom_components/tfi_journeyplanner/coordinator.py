@@ -43,18 +43,32 @@ class TFIJourneyPlannerCoordinator(DataUpdateCoordinator):
         self.update_horizon_fast = update_horizon_fast
         self._next_update: datetime = None
         self._update_no_data = 0
+        self.polling_enabled = True
+        self.is_polling = True
 
     async def _async_update_data(self) -> None:
         """Fetch data from TFI Journey Planner API."""
         tfi_data: TFIData = self._tfi_data
+
         stop_ids = [stop for stops in self.async_contexts() for stop in stops]
         if not stop_ids:
             _LOGGER.debug("no stops registered, skipping update")
             return
 
+        if self.is_polling and not self.polling_enabled:  ## polling enabled
+            _LOGGER.debug("re-enabling coordinator polling")
+            self.polling_enabled = True
+            self._next_update = None
+        elif not self.is_polling and self.polling_enabled:  ## polling disabled
+            _LOGGER.debug("disabling coordinator polling")
+            self.polling_enabled = False
+            self.update_interval = None
+            return
+
         now = datetime.now().astimezone()
         next_update = self._next_update
         if next_update is None:
+            _LOGGER.debug("performing initial update")
             next_update = now
         if next_update > now + timedelta(seconds=15):
             _LOGGER.debug(

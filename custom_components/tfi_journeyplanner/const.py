@@ -45,6 +45,6 @@ DEFAULTS = {
     CONF_INCLUDE_CANCELLED: False,
 }
 DEFAULT_TITLE = "TFI Journey Planner"
-DEFAULT_ICON = "mdi:transit-connection-variant"
+DEFAULT_SENSOR_ICON = "mdi:transit-connection-variant"
 DEFAULT_DEPARTURE_HORIZON = timedelta(hours=1)
 DEFAULT_UPDATE_NO_DATA_THRESHOLD = 3
