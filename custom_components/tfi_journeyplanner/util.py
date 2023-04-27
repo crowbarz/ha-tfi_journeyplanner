@@ -22,7 +22,7 @@ def get_duration_option(
         return default
     # if defaults:
     #     return defaults[opt]
-    return DEFAULTS[opt]
+    return DEFAULTS.get(opt)
 
 
 def duration_to_seconds(duration_dict: dict[str, Any]) -> int:
