@@ -57,8 +57,10 @@ async def async_setup_entry(
     entity_unique_ids = {}
     for stop in data[CONF_STOPS]:
         stop_ids = stop[CONF_STOP_IDS]
-        service_ids = stop.get(CONF_SERVICE_IDS, options.get(CONF_SERVICE_IDS, []))
-        direction = stop.get(CONF_DIRECTION, options.get(CONF_DIRECTION, []))
+        stop_service_ids = stop.get(CONF_SERVICE_IDS)
+        stop_direction = stop.get(CONF_DIRECTION)
+        service_ids = stop_service_ids or stop.get(CONF_SERVICE_IDS, [])
+        direction = stop_direction or stop.get(CONF_DIRECTION, [])
         limit_departures = stop.get(
             CONF_LIMIT_DEPARTURES, options.get(CONF_LIMIT_DEPARTURES)
         )
@@ -73,8 +75,8 @@ async def async_setup_entry(
         name = (
             "Stop "
             + ", ".join(stop_ids)
-            + (" Service " + ", ".join(service_ids) if service_ids else "")
-            + (" Direction " + ", ".join(direction) if direction else "")
+            + (" Service " + ", ".join(stop_service_ids) if stop_service_ids else "")
+            + (" Direction " + ", ".join(stop_direction) if stop_direction else "")
         )
         unique_id = get_device_unique_id(entry, "+".join(stop_ids))
         if unique_id not in entity_unique_ids:
