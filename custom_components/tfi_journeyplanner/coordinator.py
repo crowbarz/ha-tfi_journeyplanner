@@ -63,6 +63,10 @@ class TFIJourneyPlannerCoordinator(DataUpdateCoordinator):
             _LOGGER.debug("disabling coordinator polling")
             self.polling_enabled = False
             self.update_interval = None
+
+        ## Continue refreshing sensors when polling is off
+        if not self.is_polling:
+            self.update_interval = timedelta(seconds=30)
             return
 
         now = datetime.now().astimezone()
