@@ -128,12 +128,6 @@ class TFIData:
                 departures.append(dep)
                 if limit_departures and dep_count >= limit_departures:
                     break
-        # _LOGGER.debug(
-        #     "get_filtered_departures(%s): %d/%d departures",
-        #     stop_ids,
-        #     len(departures),
-        #     len(self._departures),
-        # )
         return departures
 
     async def update_departures(
@@ -186,12 +180,12 @@ class TFIData:
             "refresh": True,
         }
 
-        # _LOGGER.debug("post_data=%s", json.dumps(post_data))
         async with session.post(TFI_DEPARTURES_API, json=post_data) as resp:
             data: dict[str, Any] = {}
             if resp.status == 200:
                 data = await resp.json()
-            # _LOGGER.debug("data=%s", data)
+            else:
+                _LOGGER.warning("TFI API returned status %d, discarding response")
             departures = []
             if not (deps_raw := data.get("stopDepartures", [])):
                 if not (deps_raw := self._departures):
@@ -216,10 +210,5 @@ class TFIData:
                     parse_departure(dep)
                     if filter_departure(dep):
                         departures.append(dep)
-            # _LOGGER.debug(
-            #     "update_departures=%d",  # "departures=%s",
-            #     len(departures),
-            #     # [dep["departure"].isoformat() for dep in departures],
-            # )
             self._departures = departures
             return departures
