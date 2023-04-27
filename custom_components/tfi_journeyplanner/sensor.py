@@ -50,17 +50,16 @@ async def async_setup_entry(
     entry_data = hass.data[DOMAIN][entry.entry_id]
     coordinator: TFIJourneyPlannerCoordinator = entry_data["coordinator"]
     tfi_data: TFIData = entry_data["tfi_data"]
-    data = entry.data
     options = entry.options
 
     entities = []
     entity_unique_ids = {}
-    for stop in data[CONF_STOPS]:
+    for stop in options[CONF_STOPS]:
         stop_ids = stop[CONF_STOP_IDS]
         stop_service_ids = stop.get(CONF_SERVICE_IDS)
         stop_direction = stop.get(CONF_DIRECTION)
-        service_ids = stop_service_ids or stop.get(CONF_SERVICE_IDS, [])
-        direction = stop_direction or stop.get(CONF_DIRECTION, [])
+        service_ids = stop_service_ids or options.get(CONF_SERVICE_IDS, [])
+        direction = stop_direction or options.get(CONF_DIRECTION, [])
         limit_departures = stop.get(
             CONF_LIMIT_DEPARTURES, options.get(CONF_LIMIT_DEPARTURES)
         )

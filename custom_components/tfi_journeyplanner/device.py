@@ -21,7 +21,7 @@ def get_device_info(entry: ConfigEntry) -> DeviceInfo:
                 DOMAIN,
                 *[
                     stop_id
-                    for stop in entry.data[CONF_STOPS]
+                    for stop in entry.options[CONF_STOPS]
                     for stop_id in stop[CONF_STOP_IDS]
                 ],
             )
@@ -29,8 +29,6 @@ def get_device_info(entry: ConfigEntry) -> DeviceInfo:
         name=entry.title,
         manufacturer="Transport for Ireland",
         configuration_url="https://journeyplanner.transportforireland.ie/",
-        # model=self.light.productname,
-        # sw_version=self.light.swversion,
     )
 
 

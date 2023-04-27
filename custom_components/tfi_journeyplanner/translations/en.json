@@ -21,7 +21,7 @@
                     "include_cancelled": "Include cancelled services"
                 },
                 "data_description": {
-                    "stops": "Stop format: [stop_id][=service_id][/direction][@departure_horizon(HH:MM:SS)][#limit_departures]\nMultiple stop_id, service_id, direction can be specified, separate with \",\"",
+                    "stops": "Stop format: [stop_id][=service_id][/direction][@departure_horizon([HH:[MM:[SS]])][#limit_departures]\nMultiple stop_id, service_id, direction can be specified, separate with \",\"",
                     "service_ids": "Only departures with these service IDs will be shown",
                     "direction": "Only departures with these directions will be shown",
                     "limit_departures": "Enter 0 for unlimited departures (not recommended)",
@@ -40,10 +40,11 @@
             "unknown": "Unexpected exception: {exception}"
         },
         "step": {
-            "filter_options": {
-                "title": "TFI Journey Planner Filter options",
-                "description": "Configure global departure filters",
+            "stop_options": {
+                "title": "TFI Journey Planner Stop options",
+                "description": "Configure stops and departure filters",
                 "data": {
+                    "stops": "Stops",
                     "service_ids": "Service IDs",
                     "direction": "Show direction",
                     "limit_departures": "Maximum number of departures to show",
@@ -52,6 +53,7 @@
                     "include_cancelled": "Include cancelled services"
                 },
                 "data_description": {
+                    "stops": "Stop format: [stop_id][=service_id][/direction][@departure_horizon([HH:[MM:[SS]])][#limit_departures]\nMultiple stop_id, service_id, direction can be specified, separate with \",\"",
                     "service_ids": "Only departures with these service IDs will be shown",
                     "direction": "Only departures with these directions will be shown",
                     "limit_departures": "Enter 0 for unlimited departures (not recommended)",
@@ -59,7 +61,7 @@
                 }
             },
             "timer_options": {
-                "title": "TFI Journey Planner Timer options",
+                "title": "TFI Journey Planner Update Timer options",
                 "description": "Configure global update timers",
                 "data": {
                     "update_horizon_fast": "Fast update horizon",

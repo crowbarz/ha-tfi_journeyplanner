@@ -43,7 +43,10 @@ from .util import (
 
 _LOGGER = logging.getLogger(__name__)
 
-OPTIONS_FILTERS_SCHEMA_ITEMS = {
+OPTIONS_STOPS_SCHEMA_ITEMS = {
+    vol.Required(CONF_STOPS): selector.SelectSelector(
+        selector.SelectSelectorConfig(options=[], custom_value=True, multiple=True),
+    ),
     vol.Optional(CONF_SERVICE_IDS): selector.SelectSelector(
         selector.SelectSelectorConfig(options=[], custom_value=True, multiple=True),
     ),
@@ -93,14 +96,11 @@ OPTIONS_TIMERS_SCHEMA_ITEMS = {
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_TITLE, default=DEFAULT_TITLE): selector.TextSelector(),
-        vol.Required(CONF_STOPS): selector.SelectSelector(
-            selector.SelectSelectorConfig(options=[], custom_value=True, multiple=True),
-        ),
-        **OPTIONS_FILTERS_SCHEMA_ITEMS,
+        **OPTIONS_STOPS_SCHEMA_ITEMS,
     }
 )
 
-STEP_OPTIONS_FILTERS_SCHEMA = vol.Schema({**OPTIONS_FILTERS_SCHEMA_ITEMS})
+STEP_OPTIONS_STOPS_SCHEMA = vol.Schema({**OPTIONS_STOPS_SCHEMA_ITEMS})
 STEP_OPTIONS_TIMERS_SCHEMA = vol.Schema({**OPTIONS_TIMERS_SCHEMA_ITEMS})
 
 
@@ -113,14 +113,14 @@ def convert_options(options: dict[str, Any]) -> dict[str, Any]:
         for stop in options[CONF_STOPS]:
             if isinstance(stop, dict):
                 stop_list.append(
-                    stop[CONF_STOP_IDS]
+                    ",".join(stop[CONF_STOP_IDS])
                     + (
-                        "=" + stop[CONF_SERVICE_IDS].join(",")
+                        "=" + ",".join(stop[CONF_SERVICE_IDS])
                         if CONF_SERVICE_IDS in stop
                         else ""
                     )
                     + (
-                        "/" + stop[CONF_DIRECTION].join(",")
+                        "/" + ",".join(stop[CONF_DIRECTION])
                         if CONF_DIRECTION in stop
                         else ""
                     )
@@ -209,7 +209,7 @@ def validate_input(
                         description_placeholders.setdefault("stops", [])
                         description_placeholders["stops"].append(stop_raw)
 
-                data[CONF_STOPS] = stops
+                options[CONF_STOPS] = stops
 
         if CONF_DEPARTURE_HORIZON in user_input:
             if duration := duration_to_seconds(user_input[CONF_DEPARTURE_HORIZON]):
@@ -287,9 +287,9 @@ class TFIJourneyPlannerOptionsFlow(config_entries.OptionsFlow):
         self, _user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle options flow for TFI Journey Planner."""
-        return await self.async_step_filter_options()
+        return await self.async_step_stop_options()
 
-    async def async_step_filter_options(
+    async def async_step_stop_options(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle filters page."""
@@ -303,9 +303,9 @@ class TFIJourneyPlannerOptionsFlow(config_entries.OptionsFlow):
                 return await self.async_step_timer_options()
 
         return self.async_show_form(
-            step_id="filter_options",
+            step_id="stop_options",
             data_schema=self.add_suggested_values_to_schema(
-                STEP_OPTIONS_FILTERS_SCHEMA,
+                STEP_OPTIONS_STOPS_SCHEMA,
                 user_input if user_input else self._flow_options,
             ),
             errors=errors,
