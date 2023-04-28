@@ -185,7 +185,9 @@ class TFIData:
             if resp.status == 200:
                 data = await resp.json()
             else:
-                _LOGGER.warning("TFI API returned status %d, discarding response")
+                _LOGGER.warning(
+                    "TFI API returned status %d, discarding response", resp.status
+                )
             departures = []
             if not (deps_raw := data.get("stopDepartures", [])):
                 if not (deps_raw := self._departures):
