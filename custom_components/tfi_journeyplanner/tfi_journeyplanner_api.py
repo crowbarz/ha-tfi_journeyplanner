@@ -32,6 +32,8 @@ TFI_DEFAULT_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
 }
+TFI_DEFAULT_SESSION_TIMEOUT = 20
+TFI_DEFAULT_CONNECT_TIMEOUT = 10
 
 
 class NotConnected(Exception):
@@ -44,13 +46,21 @@ class TFIData:
     def __init__(self):
         self._session = None
         self._departures = None
+        self._connect_failed_log_msg = False
+        self._bad_response_log_msg = False
         self._no_data_log_msg = False
         self._no_data_filtered_log_msg = False
 
     async def setup(self) -> None:
         """Set up TFI Journey Planner."""
         if not self._session:
-            self._session = aiohttp.ClientSession(headers=TFI_DEFAULT_HEADERS)
+            timeout = aiohttp.ClientTimeout(
+                total=TFI_DEFAULT_SESSION_TIMEOUT,
+                connect=TFI_DEFAULT_CONNECT_TIMEOUT,
+            )
+            self._session = aiohttp.ClientSession(
+                headers=TFI_DEFAULT_HEADERS, timeout=timeout
+            )
 
     async def cleanup(self) -> None:
         """Clean up TFI Journey Planner."""
@@ -180,37 +190,46 @@ class TFIData:
             "refresh": True,
         }
 
-        async with session.post(TFI_DEPARTURES_API, json=post_data) as resp:
-            data: dict[str, Any] = {}
-            if resp.status == 200:
-                data = await resp.json()
-            else:
-                _LOGGER.warning(
-                    "TFI API returned status %d, discarding response", resp.status
-                )
-            departures = []
-            if not (deps_raw := data.get("stopDepartures", [])):
-                if not (deps_raw := self._departures):
-                    if not self._no_data_log_msg:
-                        _LOGGER.warning(
-                            "no departures retrieved and no cached departures"
-                        )
-                        self._no_data_log_msg = True
+        data: dict[str, Any] = {}
+        try:
+            async with session.post(TFI_DEPARTURES_API, json=post_data) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    self._connect_failed_log_msg = False
+                    self._bad_response_log_msg = False
                 else:
-                    if not self._no_data_filtered_log_msg:
-                        self._no_data_filtered_log_msg = True
-                        _LOGGER.debug(
-                            "no departures retrieved, filtering cached departures"
+                    if not self._bad_response_log_msg:
+                        _LOGGER.warning(
+                            "TFI API returned status %d, discarding response",
+                            resp.status,
                         )
-                    for dep in deps_raw:
-                        if filter_departure(dep):
-                            departures.append(dep)
+                        self._bad_response_log_msg = True
+        except (aiohttp.ClientConnectionError, aiohttp.ClientResponseError) as exc:
+            if not self._connect_failed_log_msg:
+                _LOGGER.warning("could not connect to TFI API: %s", str(exc))
+                self._connect_failed_log_msg = True
+
+        departures = []
+        if not (deps_raw := data.get("stopDepartures", [])):
+            if not (deps_raw := self._departures):
+                if not self._no_data_log_msg:
+                    _LOGGER.warning("no departures retrieved and no cached departures")
+                    self._no_data_log_msg = True
             else:
-                self._no_data_log_msg = False
-                self._no_data_filtered_log_msg = False
+                if not self._no_data_filtered_log_msg:
+                    self._no_data_filtered_log_msg = True
+                    _LOGGER.debug(
+                        "no departures retrieved, filtering cached departures"
+                    )
                 for dep in deps_raw:
-                    parse_departure(dep)
                     if filter_departure(dep):
                         departures.append(dep)
-            self._departures = departures
-            return departures
+        else:
+            self._no_data_log_msg = False
+            self._no_data_filtered_log_msg = False
+            for dep in deps_raw:
+                parse_departure(dep)
+                if filter_departure(dep):
+                    departures.append(dep)
+        self._departures = departures
+        return departures

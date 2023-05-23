@@ -143,18 +143,7 @@ class TfiJourneyPlannerSensor(CoordinatorEntity, SensorEntity):
             "subscribing stop %s (unique_id=%s) to coordinator", self._stop, unique_id
         )
 
-        # stop_ids = stop[CONF_STOP_IDS]
-        # self._attr_name = "Stop " + ", ".join(stop_ids)
-        # if stop.get(CONF_SERVICE_IDS):
-        #     self._attr_name += "Service " + ", ".join(self._service_ids)
-        # if stop.get(CONF_DIRECTION):
-        #     self._attr_name += "Direction " + ", ".join(self._direction)
         self._departures = None
-
-    # async def async_added_to_hass(self) -> None:
-    #     """Complete the initialization."""
-    #     await super().async_added_to_hass()
-    #     await self._coordinator.async_refresh()
 
     @property
     def device_info(self) -> DeviceInfo:

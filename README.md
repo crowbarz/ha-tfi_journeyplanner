@@ -10,21 +10,21 @@ This integration can be installed via HACS by adding this repository as a custom
 
 Once installed, add an instance of this integration via the UI (**Configuration > Integrations > +**), enter all of the stop IDs that you wish to poll data for in the **Stops** field. Click **Submit** to start the instance and generate entities for each stop entered.
 
+## Stop IDs
+
 To identify the stop ID for a transit stop, go to the [TFI Journey Planner](https://journeyplanner.transportforireland.ie/), search for the stop and go to the live departures for that stop. The URL of the page shows the stop ID that you need to enter into the integration.
+
+Currently, stop IDs are always in UPPERCASE.
 
 You can see the details of all departures in the attributes of the stop entities. This can also be used by front-end integrations such as [Flex Table Card](https://github.com/custom-cards/flex-table-card) to generate a departure board.
 
 **NOTE:** It is strongly recommended that all sensors created by this integration be excluded from your recorder database. See the [Recorder documentation](https://www.home-assistant.io/integrations/recorder/#configure-filter) for the process. Otherwise, every sensor update will be stored in the Home Assistant database and take up a lot of unnecessary disk space.
 
-## Stop IDs
+## Stop departure filters
 
 You can override departure filters on a per stop basis using the following advanced format for a stop ID:
 
   *stop_id*`=`*service_id*`/`*direction*`#`*limit_departures*`@`*departure_horizon*
-
-Where multiple filters are specified, a departure must satisfy *all* filters to be included in the departures list.
-
-If configured globally, it is not currently possible to remove service ID and direction filters on a per stop basis. Remove the global filters and configure per stop filters on every applicable stop instead.
 
 | Parameter | Description
 | --------- | -----------
@@ -34,9 +34,13 @@ If configured globally, it is not currently possible to remove service ID and di
 | *limit_departures* | Limit the number of departures returned by this integration.
 | *departure_horizon* | Limit the departures by their due time.
 
-### Example stop ID definitions
+Where multiple filters are specified, a departure must satisfy *all* filters to be included in the departures list.
 
-Enable debug logging on the integration to see the departures polled by the integration.
+Currently, service IDs and service directions are always in UPPERCASE.
+
+If configured globally, it is not currently possible to remove service ID and direction filters on a per stop basis. Remove the global filters and configure per stop filters on every applicable stop instead.
+
+### Example stop ID definitions
 
 | Stop | Description
 | ---- | -----------
@@ -56,8 +60,10 @@ To reduce the number of poll requests, all transit stops added to the same insta
 
 ## Reconfiguring the integration
 
-Stops, departure filters and polling intervals can be modified by clicking **Configure** on the integration card.
+Stops, departure filters and polling intervals can be reconfigured by clicking **Configure** on the integration card.
 
 ## Enabling debugging
 
 The integration logs messages to the `custom_components.tfi_journeyplanner` namespace. See the [Logger integration documentation](https://www.home-assistant.io/integrations/logger/) for the procedure for enabling logging for this namespace.
+
+Enable debug logging on the integration to check polling and view the departures retrieved by the integration.

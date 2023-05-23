@@ -81,37 +81,36 @@ class TFIJourneyPlannerCoordinator(DataUpdateCoordinator):
             )
             return
 
-        async with async_timeout.timeout(10):
-            departures = await tfi_data.update_departures(stop_ids)
-            first_departure = None
-            departure_horizon = None
-            update_interval = self.update_interval_default
-            if len(departures) == 0:
-                self._update_no_data += 1
-                if self._update_no_data > DEFAULT_UPDATE_NO_DATA_THRESHOLD:
-                    update_interval = self.update_interval_no_data
-            else:
-                self._update_no_data = 0
-                first_departure: datetime = departures[0].get("departure", now)
-                departure_horizon = first_departure - now
-                update_horizon_fast = self.update_horizon_fast
-                update_interval_default = self.update_interval_default
-                update_interval_fast = self.update_interval_fast
-                if departure_horizon < update_horizon_fast:
-                    ## Next departure due within fast update horizon
-                    update_interval = update_interval_fast
-                elif departure_horizon < update_horizon_fast + update_interval_default:
-                    ## Next departure will fall within fast update horizon before next update
-                    update_interval = max(
-                        departure_horizon - update_horizon_fast, update_interval_fast
-                    )
+        departures = await tfi_data.update_departures(stop_ids)
+        first_departure = None
+        departure_horizon = None
+        update_interval = self.update_interval_default
+        if len(departures) == 0:
+            self._update_no_data += 1
+            if self._update_no_data > DEFAULT_UPDATE_NO_DATA_THRESHOLD:
+                update_interval = self.update_interval_no_data
+        else:
+            self._update_no_data = 0
+            first_departure: datetime = departures[0].get("departure", now)
+            departure_horizon = first_departure - now
+            update_horizon_fast = self.update_horizon_fast
+            update_interval_default = self.update_interval_default
+            update_interval_fast = self.update_interval_fast
+            if departure_horizon < update_horizon_fast:
+                ## Next departure due within fast update horizon
+                update_interval = update_interval_fast
+            elif departure_horizon < update_horizon_fast + update_interval_default:
+                ## Next departure will fall within fast update horizon before next update
+                update_interval = max(
+                    departure_horizon - update_horizon_fast, update_interval_fast
+                )
 
-            self._next_update = now + update_interval
-            self.update_interval = timedelta(seconds=30)
+        self._next_update = now + update_interval
+        self.update_interval = timedelta(seconds=30)
 
-            _LOGGER.debug(
-                "retrieved %d departures, first departure in %s, next update in %s",
-                len(departures),
-                timedelta_to_str(departure_horizon),
-                timedelta_to_str(update_interval),
-            )
+        _LOGGER.debug(
+            "retrieved %d departures, first departure in %s, next update in %s",
+            len(departures),
+            timedelta_to_str(departure_horizon) if departure_horizon else "(unknown)",
+            timedelta_to_str(update_interval),
+        )
