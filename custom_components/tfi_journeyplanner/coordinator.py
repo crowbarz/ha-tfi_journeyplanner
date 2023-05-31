@@ -3,8 +3,6 @@
 from datetime import datetime, timedelta
 import logging
 
-import async_timeout
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
