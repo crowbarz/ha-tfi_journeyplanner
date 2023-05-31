@@ -64,6 +64,7 @@ class TFIJourneyPlannerCoordinator(DataUpdateCoordinator):
 
         ## Continue refreshing sensors when polling is off
         if not self.is_polling:
+            self._tfi_data.filter_cached_departures()
             self.update_interval = timedelta(seconds=30)
             return
 

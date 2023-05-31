@@ -140,6 +140,21 @@ class TFIData:
                     break
         return departures
 
+    def _filter_departure_time(self, dep: dict[str, Any]) -> bool:
+        now = datetime.now().astimezone(timezone.utc)
+        return dep["departure"] >= now - timedelta(minutes=1)
+
+    def filter_cached_departures(self) -> None:
+        """Filter cached departures."""
+        departures = []
+        for dep in self._departures:
+            if self._filter_departure_time(dep):
+                if dep["realTimeDeparture"] is not None:
+                    dep["scheduledDeparture"] = dep["realTimeDeparture"]
+                    dep["realTimeDeparture"] = None
+                departures.append(dep)
+        self._departures = departures
+
     async def update_departures(
         self,
         stop_ids: list[str],
@@ -173,9 +188,6 @@ class TFIData:
                 else None
             )
             dep["departure"] = dep_rt if dep_rt is not None else dep_sch
-
-        def filter_departure(dep: dict[str, Any]) -> bool:
-            return dep["departure"] >= now - timedelta(minutes=1)
 
         tzoffset = -int(datetime.now().astimezone().utcoffset().total_seconds()) * 1000
         post_data = {
@@ -211,7 +223,7 @@ class TFIData:
 
         departures = []
         if not (deps_raw := data.get("stopDepartures", [])):
-            if not (deps_raw := self._departures):
+            if not self._departures:
                 if not self._no_data_log_msg:
                     _LOGGER.warning("no departures retrieved and no cached departures")
                     self._no_data_log_msg = True
@@ -221,15 +233,13 @@ class TFIData:
                     _LOGGER.debug(
                         "no departures retrieved, filtering cached departures"
                     )
-                for dep in deps_raw:
-                    if filter_departure(dep):
-                        departures.append(dep)
+                self.filter_cached_departures()
         else:
             self._no_data_log_msg = False
             self._no_data_filtered_log_msg = False
             for dep in deps_raw:
                 parse_departure(dep)
-                if filter_departure(dep):
+                if self._filter_departure_time(dep):
                     departures.append(dep)
-        self._departures = departures
+            self._departures = departures
         return departures
