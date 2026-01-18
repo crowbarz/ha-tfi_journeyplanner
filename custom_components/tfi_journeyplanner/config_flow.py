@@ -1,4 +1,5 @@
 """Config flow for TFI Journey Planner integration."""
+
 from __future__ import annotations
 
 import logging
@@ -163,7 +164,7 @@ def convert_options(options: dict[str, Any]) -> dict[str, Any]:
 
 
 def validate_input(
-    user_input: dict[str, Any]
+    user_input: dict[str, Any],
 ) -> Tuple[dict[str, Any], dict[str, Any], dict[str, str], dict[str, str]]:
     """Validate the user input."""
     errors: dict[str, str] = {}
@@ -279,14 +280,15 @@ class TFIJourneyPlannerOptionsFlow(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialise TFI Journey Planner options flow."""
-        self.config_entry = config_entry
-        self._options: dict[str, Any] = dict(self.config_entry.options)
-        self._flow_options = convert_options(self._options)
+        self._options: dict[str, Any] = {}
+        self._flow_options: dict[str, Any] = {}
 
     async def async_step_init(
         self, _user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle options flow for TFI Journey Planner."""
+        self._options: dict[str, Any] = dict(self.config_entry.options)
+        self._flow_options = convert_options(self._options)
         return await self.async_step_stop_options()
 
     async def async_step_stop_options(
