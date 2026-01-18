@@ -1,4 +1,5 @@
 """The TFI Journey Planner integration."""
+
 from __future__ import annotations
 
 import asyncio
@@ -51,6 +52,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         get_duration_option(options, CONF_UPDATE_INTERVAL_NO_DATA),
         get_duration_option(options, CONF_UPDATE_HORIZON_FAST),
     )
+    await coordinator.async_config_entry_first_refresh()
 
     hass.data[DOMAIN].setdefault(entry.entry_id, {})
     hass.data[DOMAIN][entry.entry_id]["coordinator"] = coordinator

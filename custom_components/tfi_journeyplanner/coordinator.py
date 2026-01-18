@@ -32,6 +32,7 @@ class TFIJourneyPlannerCoordinator(DataUpdateCoordinator):
             # Name of the data. For logging purposes.
             name="TFIData",
             ## short initial refresh after all platforms have completed setup
+            ## TODO: remove interval as coordinator is now refreshed in async_setup_entry
             update_interval=timedelta(seconds=3),
         )
         self._tfi_data = tfi_data
